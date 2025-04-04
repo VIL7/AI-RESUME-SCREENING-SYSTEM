@@ -21,4 +21,40 @@ The AI Resume Screening Tool is a web-based application designed to automate the
 - No additional software or server setup required.
 
 ### Installation
-1. Clone the repository:
+#1. Clone the repository:
+https://github.com/VIL7/AI-RESUME-SCREENING-SYSTEM.git
+
+#2. Navigate to the project directory:
+   cd AI-Resume-Screening-Tool
+
+#3.STEPS
+
+   Open `index.html` in your browser:
+- Double-click `index.html`, or
+- Use a local server (e.g., VS Code Live Server) for optimal performance.
+
+## Usage
+1. Open the application in your browser.
+2. Enter a job description in the text area (e.g., "Executive Secretary").
+3. Upload one or more PDF resumes using the file input.
+4. Click "Rank Resumes" to process and view the results.
+5. Review the ranked list of resumes with scores and the top match’s extracted text.
+
+## Screenshots
+### Initial Interface
+![Initial Interface](screenshots/initial.png)  
+*The initial interface with input fields for job description and resume upload.*
+
+### Results Interface
+![Results Interface](screenshots/results.png)  
+*The results interface showing ranked resumes and the top match’s extracted text.*
+
+## Limitations
+- Supports only text-based PDFs (scanned PDFs are not supported).
+- Relies on keyword-based matching, lacking semantic understanding.
+- Client-side processing may be slow for large datasets.
+
+## Future Improvements
+- Integrate NLP for semantic analysis.
+- Add OCR support for scanned PDFs.
+- Implement result export functionality (e.g., CSV download).
