@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Screening Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e0eafc, #cfdef3);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: #fff;
+            width: 100%;
+            max-width: 900px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: #4a90e2;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .info {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            color: #2c5282;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        textarea, input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        textarea:focus, input[type="file"]:focus {
+            border-color: #4a90e2;
+            outline: none;
+        }
+        textarea {
+            height: 160px;
+            resize: vertical;
+        }
+        button {
+            background: #4a90e2;
+            color: #fff;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #357abd;
+        }
+        .error {
+            color: #fff;
+            background: #e53e3e;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+            text-align: center;
+            display: none;
+        }
+        .results {
+            margin-top: 20px;
+            display: none;
+        }
+        .results h2 {
+            color: #2c5282;
+            font-size: 22px;
+            margin-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background: #edf2f7;
+            color: #2c5282;
+            font-weight: 600;
+        }
+        td {
+            color: #4a5568;
+        }
+        tr:hover {
+            background: #f7fafc;
+        }
+        .top-resume {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+            animation: slideIn 0.5s ease;
+        }
+        .top-resume h3 {
+            color: #2c5282;
+            margin-bottom: 10px;
+        }
+        .top-resume textarea {
+            width: 100%;
+            height: 200px;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 14px;
+            background: #fff;
+        }
+        footer {
+            text-align: center;
+            padding: 15px;
+            background: #4a90e2;
+            color: #fff;
+            font-size: 14px;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Resume Screening Tool</h1>
+            <p class="info">Upload resumes and rank them against a job description using AI-powered text analysis.</p>
+        </div>
+        <div class="content">
+            <div class="section">
+                <label for="jobDescription">Job Description</label>
+                <textarea id="jobDescription" placeholder="Enter the job description here..."></textarea>
+            </div>
+            <div class="section">
+                <label for="resumes">Upload Resumes (PDF)</label>
+                <input type="file" id="resumes" accept=".pdf" multiple>
+            </div>
+            <button onclick="rankResumes()">Rank Resumes</button>
+            <div class="error" id="error"></div>
+            <div class="results" id="results">
+                <h2>Ranking Results</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Resume</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody"></tbody>
+                </table>
+                <div class="top-resume" id="topResume"></div>
+            </div>
+        </div>
+        <footer>Developed by Virendra Lohar</footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
+
+        async function extractTextFromPDF(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+            let text = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                text += content.items.map(item => item.str).join(' ');
+            }
+            return text || 'No text extracted';
+        }
+
+        function tokenize(text) {
+            return text.toLowerCase().split(/\W+/).filter(word => word && !['the', 'and', 'is', 'in', 'to', 'a'].includes(word));
+        }
+
+        function computeTFIDF(documents) {
+            const termFreq = documents.map(doc => {
+                const words = tokenize(doc);
+                const freq = {};
+                words.forEach(word => freq[word] = (freq[word] || 0) + 1);
+                return freq;
+            });
+            const docCount = documents.length;
+            const idf = {};
+            documents.forEach(doc => {
+                const words = new Set(tokenize(doc));
+                words.forEach(word => idf[word] = (idf[word] || 0) + 1);
+            });
+            Object.keys(idf).forEach(word => idf[word] = Math.log(docCount / (idf[word] + 1)));
+            return termFreq.map(tf => {
+                const vector = {};
+                Object.keys(tf).forEach(word => vector[word] = tf[word] * (idf[word] || 0));
+                return vector;
+            });
+        }
+
+        function cosineSimilarity(vec1, vec2) {
+            const allWords = new Set([...Object.keys(vec1), ...Object.keys(vec2)]);
+            let dot = 0, mag1 = 0, mag2 = 0;
+            allWords.forEach(word => {
+                const v1 = vec1[word] || 0;
+                const v2 = vec2[word] || 0;
+                dot += v1 * v2;
+                mag1 += v1 * v1;
+                mag2 += v2 * v2;
+            });
+            return dot / (Math.sqrt(mag1) * Math.sqrt(mag2)) || 0;
+        }
+
+        async function rankResumes() {
+            const jobDescription = document.getElementById('jobDescription').value.trim();
+            const files = document.getElementById('resumes').files;
+            const errorDiv = document.getElementById('error');
+            const resultsDiv = document.getElementById('results');
+            const resultsBody = document.getElementById('resultsBody');
+            const topResumeDiv = document.getElementById('topResume');
+
+            errorDiv.style.display = 'none';
+            resultsDiv.style.display = 'none';
+            resultsBody.innerHTML = '';
+            topResumeDiv.innerHTML = '';
+
+            if (!jobDescription) {
+                errorDiv.textContent = 'Please enter a job description.';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            if (files.length === 0) {
+                errorDiv.textContent = 'Please upload at least one resume.';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            const resumes = await Promise.all(Array.from(files).map(async file => ({
+                name: file.name,
+                text: await extractTextFromPDF(file)
+            })));
+            const documents = [jobDescription, ...resumes.map(r => r.text)];
+            const tfidfVectors = computeTFIDF(documents);
+            const jobVector = tfidfVectors[0];
+            const scores = tfidfVectors.slice(1).map(vec => cosineSimilarity(jobVector, vec));
+            const results = resumes.map((resume, i) => ({ name: resume.name, score: scores[i], text: resume.text }))
+                                   .sort((a, b) => b.score - a.score);
+
+            results.forEach(result => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${result.name}</td><td>${result.score.toFixed(4)}</td>`;
+                resultsBody.appendChild(row);
+            });
+
+            if (results.length > 0) {
+                const top = results[0];
+                topResumeDiv.innerHTML = `
+                    <h3>Top Match: ${top.name} (Score: ${top.score.toFixed(4)})</h3>
+                    <textarea readonly>${top.text}</textarea>
+                `;
+            }
+
+            resultsDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
